@@ -77,12 +77,31 @@ function getThinkingBudget(
 }
 
 function translateModelName(model: string): string {
-  // Subagent requests use a specific model number which Copilot doesn't support
-  if (model.startsWith("claude-sonnet-4-")) {
-    return model.replace(/^claude-sonnet-4-.*/, "claude-sonnet-4")
-  } else if (model.startsWith("claude-opus-4-")) {
-    return model.replace(/^claude-opus-4-.*/, "claude-opus-4")
+  // Claude Code uses hyphenated Anthropic model IDs (e.g. "claude-opus-4-6"),
+  // but GitHub Copilot uses dot-notation IDs (e.g. "claude-opus-4.6").
+  // Map known Anthropic IDs to their Copilot equivalents.
+  const anthropicToCopilot: Record<string, string> = {
+    "claude-opus-4-6": "claude-opus-4.6",
+    "claude-sonnet-4-6": "claude-sonnet-4.6",
+    "claude-sonnet-4-5": "claude-sonnet-4.5",
+    "claude-opus-4-5": "claude-opus-4.5",
+    "claude-haiku-4-5": "claude-haiku-4.5",
+    "claude-sonnet-4-0": "claude-sonnet-4",
+    "claude-opus-4-0": "claude-opus-4",
   }
+
+  // Exact match (handles aliases like "claude-opus-4-6")
+  if (anthropicToCopilot[model]) {
+    return anthropicToCopilot[model]
+  }
+
+  // Handle date-suffixed variants (e.g. "claude-opus-4-6-20260101")
+  // by stripping the date and re-matching
+  const withoutDate = model.replace(/-\d{8}$/, "")
+  if (anthropicToCopilot[withoutDate]) {
+    return anthropicToCopilot[withoutDate]
+  }
+
   return model
 }
 

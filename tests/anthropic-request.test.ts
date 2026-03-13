@@ -201,6 +201,68 @@ describe("Anthropic to OpenAI translation logic", () => {
   })
 })
 
+describe("Anthropic to Copilot model name translation", () => {
+  test("should translate claude-opus-4-6 to claude-opus-4.6", () => {
+    const payload: AnthropicMessagesPayload = {
+      model: "claude-opus-4-6",
+      messages: [{ role: "user", content: "Hello" }],
+      max_tokens: 100,
+    }
+    const result = translateToOpenAI(payload)
+    expect(result.model).toBe("claude-opus-4.6")
+  })
+
+  test("should translate claude-sonnet-4-6 to claude-sonnet-4.6", () => {
+    const payload: AnthropicMessagesPayload = {
+      model: "claude-sonnet-4-6",
+      messages: [{ role: "user", content: "Hello" }],
+      max_tokens: 100,
+    }
+    const result = translateToOpenAI(payload)
+    expect(result.model).toBe("claude-sonnet-4.6")
+  })
+
+  test("should translate claude-haiku-4-5 to claude-haiku-4.5", () => {
+    const payload: AnthropicMessagesPayload = {
+      model: "claude-haiku-4-5",
+      messages: [{ role: "user", content: "Hello" }],
+      max_tokens: 100,
+    }
+    const result = translateToOpenAI(payload)
+    expect(result.model).toBe("claude-haiku-4.5")
+  })
+
+  test("should handle date-suffixed model IDs", () => {
+    const payload: AnthropicMessagesPayload = {
+      model: "claude-opus-4-6-20260101",
+      messages: [{ role: "user", content: "Hello" }],
+      max_tokens: 100,
+    }
+    const result = translateToOpenAI(payload)
+    expect(result.model).toBe("claude-opus-4.6")
+  })
+
+  test("should pass through models already in Copilot format", () => {
+    const payload: AnthropicMessagesPayload = {
+      model: "claude-opus-4.6",
+      messages: [{ role: "user", content: "Hello" }],
+      max_tokens: 100,
+    }
+    const result = translateToOpenAI(payload)
+    expect(result.model).toBe("claude-opus-4.6")
+  })
+
+  test("should pass through non-Claude models unchanged", () => {
+    const payload: AnthropicMessagesPayload = {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "Hello" }],
+      max_tokens: 100,
+    }
+    const result = translateToOpenAI(payload)
+    expect(result.model).toBe("gpt-4o")
+  })
+})
+
 describe("OpenAI Chat Completion v1 Request Payload Validation with Zod", () => {
   test("should return true for a minimal valid request payload", () => {
     const validPayload = {
