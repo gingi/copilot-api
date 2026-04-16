@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 
-import { forwardError } from "~/lib/error"
+import { forwardError, withTokenRetry } from "~/lib/error"
 
 import { handleCountTokens } from "./count-tokens-handler"
 import { handleCompletion } from "./handler"
@@ -8,11 +8,7 @@ import { handleCompletion } from "./handler"
 export const messageRoutes = new Hono()
 
 messageRoutes.post("/", async (c) => {
-  try {
-    return await handleCompletion(c)
-  } catch (error) {
-    return await forwardError(c, error)
-  }
+  return await withTokenRetry(c, () => handleCompletion(c))
 })
 
 messageRoutes.post("/count_tokens", async (c) => {

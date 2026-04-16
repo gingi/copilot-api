@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 
-import { forwardError } from "~/lib/error"
+import { withTokenRetry } from "~/lib/error"
 import {
   createEmbeddings,
   type EmbeddingRequest,
@@ -9,12 +9,9 @@ import {
 export const embeddingRoutes = new Hono()
 
 embeddingRoutes.post("/", async (c) => {
-  try {
+  return await withTokenRetry(c, async () => {
     const paylod = await c.req.json<EmbeddingRequest>()
     const response = await createEmbeddings(paylod)
-
     return c.json(response)
-  } catch (error) {
-    return await forwardError(c, error)
-  }
+  })
 })

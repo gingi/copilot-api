@@ -14,6 +14,29 @@ import { HTTPError } from "./error"
 import { state } from "./state"
 
 let copilotRefreshLoopController: AbortController | null = null
+let refreshPromise: Promise<boolean> | null = null
+
+export async function refreshCopilotTokenIfExpired(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise
+
+  refreshPromise = (async () => {
+    try {
+      consola.warn(
+        "Token expired detected from request — refreshing Copilot token",
+      )
+      await setupCopilotToken()
+      consola.info("Copilot token refreshed successfully after expiry")
+      return true
+    } catch (error) {
+      consola.error("Failed to refresh Copilot token after expiry:", error)
+      return false
+    } finally {
+      refreshPromise = null
+    }
+  })()
+
+  return refreshPromise
+}
 
 export const stopCopilotRefreshLoop = () => {
   if (!copilotRefreshLoopController) {
