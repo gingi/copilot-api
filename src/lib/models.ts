@@ -32,6 +32,9 @@ export const findEndpointModel = (sdkModelId: string): Model | undefined => {
  * - "claude-sonnet-4-20250514" -> { family: "sonnet", version: "4" }
  * - "claude-haiku-3-5-20250514" -> { family: "haiku", version: "3.5" }
  * - "claude-haiku-4.5" -> { family: "haiku", version: "4.5" }
+ * - "opus-4-7" -> { family: "opus", version: "4.7" }
+ * - "sonnet-4" -> { family: "sonnet", version: "4" }
+ * - "haiku-4.5" -> { family: "haiku", version: "4.5" }
  */
 const _normalizeSdkModelId = (
   sdkModelId: string,
@@ -41,32 +44,36 @@ const _normalizeSdkModelId = (
   // Strip date suffix (8 digits at the end)
   const withoutDate = lower.replace(/-\d{8}$/, "")
 
+  // Normalize optional "claude-" prefix so all patterns work uniformly
+  const canonical =
+    withoutDate.startsWith("claude-") ? withoutDate : `claude-${withoutDate}`
+
   // Pattern 1: claude-{family}-{major}-{minor} (e.g., claude-opus-4-5, claude-haiku-3-5)
-  const pattern1 = withoutDate.match(/^claude-(\w+)-(\d+)-(\d+)$/)
+  const pattern1 = canonical.match(/^claude-(\w+)-(\d+)-(\d+)$/)
   if (pattern1) {
     return { family: pattern1[1], version: `${pattern1[2]}.${pattern1[3]}` }
   }
 
   // Pattern 2: claude-{major}-{minor}-{family} (e.g., claude-3-5-sonnet)
-  const pattern2 = withoutDate.match(/^claude-(\d+)-(\d+)-(\w+)$/)
+  const pattern2 = canonical.match(/^claude-(\d+)-(\d+)-(\w+)$/)
   if (pattern2) {
     return { family: pattern2[3], version: `${pattern2[1]}.${pattern2[2]}` }
   }
 
   // Pattern 3: claude-{family}-{major}.{minor} (e.g., claude-haiku-4.5)
-  const pattern3 = withoutDate.match(/^claude-(\w+)-(\d+)\.(\d+)$/)
+  const pattern3 = canonical.match(/^claude-(\w+)-(\d+)\.(\d+)$/)
   if (pattern3) {
     return { family: pattern3[1], version: `${pattern3[2]}.${pattern3[3]}` }
   }
 
   // Pattern 4: claude-{family}-{major} (e.g., claude-sonnet-4)
-  const pattern4 = withoutDate.match(/^claude-(\w+)-(\d+)$/)
+  const pattern4 = canonical.match(/^claude-(\w+)-(\d+)$/)
   if (pattern4) {
     return { family: pattern4[1], version: pattern4[2] }
   }
 
   // Pattern 5: claude-{major}-{family} (e.g., claude-3-opus)
-  const pattern5 = withoutDate.match(/^claude-(\d+)-(\w+)$/)
+  const pattern5 = canonical.match(/^claude-(\d+)-(\w+)$/)
   if (pattern5) {
     return { family: pattern5[2], version: pattern5[1] }
   }
