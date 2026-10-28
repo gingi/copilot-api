@@ -1,0 +1,22 @@
+[Unit]
+Description=GitHub Copilot API Proxy
+Documentation=https://github.com/caozhiyuan/copilot-api
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=@CHECKOUT@
+# Disable environment expansion so dollar signs in the executable path stay literal.
+ExecStart=:@BUN@ run dist/main.js start
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=30s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=copilot-api
+Environment=NODE_ENV=production
+Environment=NODE_USE_SYSTEM_CA=1
+
+[Install]
+WantedBy=default.target
